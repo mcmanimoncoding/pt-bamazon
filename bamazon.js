@@ -1,5 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var chalk = require("chalk");
 
 
 
@@ -29,110 +30,61 @@ var connection = mysql.createConnection({
 //         }); 
 
 
-let categories = [];
 
+let itemList = function () {
+    connection.query("SELECT * FROM bamazon.products", function (error, response) {
+        if (error) throw error;
 
-// categoryPop()
-// function categoryPop() {
-connection.query("SELECT DISTINCT department_name FROM products", (err, results, fields) => {
-    {
-        if (err) {
-            console.error("error connecting: " + err.stack);
-            return;
+        console.log(chalk.blue.bgWhite("Id / Name / Department / Price / Stock"));
+        for (var i = 0; i < response.length; i++) {
+            console.log("Product: " + response[i].id + " / " + response[i].product_name + " / " + response[i].department_name + " / $" + response[i].price + " / " + response[i].stock_quantity + " |");
         }
-        results.forEach(burrito => {
-            categories.push(burrito.department_name);
-        });
 
+        customerInquire();
+    })
 
+}
 
+function validation(answer) {
+    var integer = Number.isInteger(parseFloat(value));
+    var sign = Math.sign(value);
 
-        // };
-
-
-        // console.log("v" + newCats);
-        // console.log("CatPop" + categoryPop());
-        // console.log("Categories: " + categories);
-        start();
-
-        function start() {
-
-            inquirer
-                .prompt([{
-                    type: 'list',
-                    name: 'bamOptions',
-                    message: "\n--------------------------------------------------\nWelcome to Bamazon! What are you looking for?\n------------------------------",
-                    choices: [
-                        'Books', 'Computers', 'Albums', 'Video Games', 'Exit'
-                    ]
-                }])
-                .then(answers => {
-                    switch (answers.bamOptions) {
-                        case 'Books':
-                            loadBooks();
-                            break;
-                        case 'Computers':
-                            loadComps();
-                            break;
-                        case 'Albums':
-                            loadAlbums();
-                            break;
-                        case 'Video Games':
-                            loadVGames();
-                            break;
-                        case 'Exit':
-                            end();
-                            break;
-
-                    }
-                    // console.log(answers.bamOptions);
-                    // if (answers.searchOptions === "categories") {
-                    //     artistSearch();
-                    // } else if (answers.
-                    // searchOptions === "Multi Hit Artists") {
-                    //     repeatSearch();
-                    // } else if (answers.searchOptions === "Chunks of the List") {
-                    //     rankSearch();
-                    // } else if (answers.searchOptions === "Song Search by Title") {
-                    //     songSearch();
-                    // } else {
-                    //     return;
-                    // };
-
-                    // Use user feedback for... whatever!!
-                });
-        };
-
-        // console.log(": " + categories);
-        return categories;
+    if (integer && (sign === 1)) {
+        return true;
+    } else {
+        return "Please select an existing product id#";
     }
-})
-// console.log([categories]);
+}
 
-function end() {
-    connection.end(function (err) {
-        console.log("bye, bitch");
-    });
+function customerInquire() {
+    inquirer
+        .prompt([
+            {
+                type: 'number',
+                name: 'id',
+                message: chalk.blue.bgWhite("Please enter the Product's ID #"),
+                // validate: validation,
+                // filter: Number,
+            },
+            {
+                type: 'number',
+                name: 'quantity',
+                message: chalk.blue.bgWhite("How many?")
+            }
+
+        ]).then(function(answers){
+
+            let product = answers.id;
+            let quantity = answers.quantity;
+
+            console.log(product + " | "+quantity);
+            
+        })
 };
 
-function loadAlbums(){
-    console.log("load Albums here...");
-    end();
-};
 
-function loadBooks(){
-    console.log("load Books here...");
-    end();
-};
+function runApp() {
+    itemList();
+}
 
-function loadComps(){
-    console.log("load Computers here...");
-    end();
-};
-
-function loadVGames(){
-    console.log("load Games here...");
-    end();
-};
-
-
+runApp();
